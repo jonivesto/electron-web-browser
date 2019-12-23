@@ -1,21 +1,26 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, BrowserView } = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win
+let win, dom
 
 function createWindow () {
   // Create the browser window.
   win = new BrowserWindow({
     width: 800,
     height: 600,
+    fullscreenable: true,
+    movable: true,
+    resizable: true,
+    show: false,
+    frame: false,
     webPreferences: {
       nodeIntegration: true
     }
   })
 
   // and load the index.html of the app.
-  win.loadFile('index.html')
+  win.loadFile('src/html/control-bar.html')
 
   // Open the DevTools.
   win.webContents.openDevTools()
@@ -26,6 +31,25 @@ function createWindow () {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     win = null
+  })
+
+  // Creste DOM area
+  dom = new BrowserView()
+  win.setBrowserView(dom)
+  dom.setBounds({ x: 0, y: 100, width: 800, height: 500 })
+  dom.webContents.loadURL('https://electronjs.org')
+  //dom.webContents.openDevTools()
+
+  // Show window when ready
+  win.once('ready-to-show', () => {
+    win.show()
+  })
+
+  // Resize dom view
+  win.on('resize', () => {
+    if( dom == null || win == null ) return
+    let size = win.getSize()
+    dom.setBounds({ x: 0, y: 100, width: size[0], height: size[1] - 100 })
   })
 }
 

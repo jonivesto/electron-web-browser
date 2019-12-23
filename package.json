@@ -9,6 +9,7 @@
   "author": "Joni-Pekka Vesto",
   "license": "MIT",
   "dependencies": {
-    "electron": "^7.1.7"
+    "electron": "^7.1.7",
+    "jquery": "^3.4.1"
   }
 }
