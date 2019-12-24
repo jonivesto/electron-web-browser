@@ -2,13 +2,15 @@ const { app, BrowserWindow, BrowserView } = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win, dom
+let win, tabs = []
 
 function createWindow () {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 800,
+    width: 900,
     height: 600,
+    minWidth: 300,
+    minHeight: 300,
     fullscreenable: true,
     movable: true,
     resizable: true,
@@ -23,7 +25,7 @@ function createWindow () {
   win.loadFile('src/html/control-bar.html')
 
   // Open the DevTools.
-  win.webContents.openDevTools()
+  //win.webContents.openDevTools()
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -33,23 +35,21 @@ function createWindow () {
     win = null
   })
 
-  // Creste DOM area
-  dom = new BrowserView()
-  win.setBrowserView(dom)
-  dom.setBounds({ x: 0, y: 100, width: 800, height: 500 })
-  dom.webContents.loadURL('https://electronjs.org')
-  //dom.webContents.openDevTools()
+  // Open tab
+  newTab();
 
   // Show window when ready
   win.once('ready-to-show', () => {
     win.show()
   })
 
-  // Resize dom view
+  // Resize tabs when window is resized
   win.on('resize', () => {
-    if( dom == null || win == null ) return
+    if( tabs.length == 0 || win == null ) return
     let size = win.getSize()
-    dom.setBounds({ x: 0, y: 100, width: size[0], height: size[1] - 100 })
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].setBounds({ x: 0, y: 70, width: size[0], height: size[1] - 70 })
+    }
   })
 }
 
@@ -77,3 +77,30 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+function newTab(){
+  // Creste DOM area
+  tab = new BrowserView()
+  tabs.push(tab)
+  win.setBrowserView(tab)
+  tab.setBounds({ x: 0, y: 70, width: 900, height: 530 })
+  tab.webContents.loadURL('https://electronjs.org')
+  //dom.webContents.openDevTools()
+}
+
+// Global functions
+global.PrevPage = function(){
+
+}
+
+global.NxtPage = function(){
+
+}
+
+global.RefreshPage = function(){
+
+}
+
+global.NewTab = function(){
+  newTab()
+}

@@ -9,20 +9,33 @@ $(function(){
   initWindowControls()
 })
 
-// add listeners for frame's buttons buttons
+// add listeners buttons
 function initWindowControls(){
   document.getElementById('close-app-btn').addEventListener('click', function (event) {
-      var window = remote.getCurrentWindow();
-      window.close();
+      remote.getCurrentWindow().close()
   })
 
   document.getElementById('hide-app-btn').addEventListener('click', function (event) {
-      var window = remote.getCurrentWindow();
-      window.minimize();
+      remote.getCurrentWindow().minimize()
   })
 
   document.getElementById('maximize-app-btn').addEventListener('click', function (event) {
-      var window = remote.getCurrentWindow();
-      window.maximize();
+      remote.getCurrentWindow().maximize()
+  })
+
+  document.getElementById('prev-page-btn').addEventListener('click', function (event) {
+      remote.getGlobal('PrevPage')()
+  })
+
+  document.getElementById('next-page-btn').addEventListener('click', function (event) {
+      remote.getGlobal('NxtPage')()
+  })
+
+  document.getElementById('refresh-page-btn').addEventListener('click', function (event) {
+      remote.getGlobal('RefreshPage')()
+  })
+
+  document.getElementById('new-tab-btn').addEventListener('click', function (event) {
+      remote.getGlobal('NewTab')()
   })
 }

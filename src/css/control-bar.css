@@ -1,15 +1,66 @@
 body, html{
    -webkit-app-region: drag;
    margin: 0;
-   height: 100px;
+   height: 70px;
    width: 100vw;
-   background-color: silver;
-   color: black;
+   background-color: black;
    overflow: hidden;
+   box-sizing: border-box;
+}
+
+.tab{
+  height: 100%;
+  background-color: gray;
+  color: white;
+  margin-right: 4px;
+  float: left;
+  width: 120px;
+}
+
+#url-bar{
+  height: 35px;
+  background-color: #555;
+  color: silver;
+  position: fixed;
+  top: 35px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  -webkit-app-region: no-drag;
+}
+
+#new-tab-btn{
+  float: left;
+  height: 100%;
+  color: white;
+  background-color: transparent;
+  outline: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  -webkit-app-region: no-drag;
+  font-size: 20px;
+}
+
+#url-bar > button{
+  -webkit-app-region: no-drag;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  color: silver;
+  width: 30px;
+}
+
+#tabs-container{
+  height: 35px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 133px;
 }
 
 #window-controls{
-  position: absolute;
+  position: fixed;
   right: 0;
   top: 0;
   -webkit-app-region: no-drag;
@@ -18,4 +69,24 @@ body, html{
 
 #window-controls > button{
   -webkit-app-region: no-drag;
+  outline: none;
+  border: none;
+  background-color: black;
+  color: silver;
+  margin: 0;
+  padding: 0;
+  width: 35px;
+  z-index: 99;
+  height: 34px;
+  opacity: 0.8;
+}
+
+#window-controls > button:hover {
+  opacity: 1;
+  background-color: #222;
+}
+
+#close-app-btn:hover{
+  background-color: red;
+  opacity: 1;
 }
