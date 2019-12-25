@@ -2,11 +2,11 @@ const { app, BrowserWindow, BrowserView } = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win, tabs = []
+let windows = []
 
-function createWindow () {
+function newWindow() {
   // Create the browser window.
-  win = new BrowserWindow({
+  let win = new BrowserWindow({
     width: 900,
     height: 600,
     minWidth: 300,
@@ -21,11 +21,14 @@ function createWindow () {
     }
   })
 
+  // add to windows array
+  windows.push(win)
+
   // and load the index.html of the app.
   win.loadFile('src/html/control-bar.html')
 
   // Open the DevTools.
-  //win.webContents.openDevTools()
+  win.webContents.openDevTools()
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -35,8 +38,8 @@ function createWindow () {
     win = null
   })
 
-  // Open tab
-  newTab();
+  // Open tab for this window
+  newTab(win)
 
   // Show window when ready
   win.once('ready-to-show', () => {
@@ -45,10 +48,17 @@ function createWindow () {
 
   // Resize tabs when window is resized
   win.on('resize', () => {
-    if( tabs.length == 0 || win == null ) return
+    if( windows.length == 0 ) return
     let size = win.getSize()
-    for (var i = 0; i < tabs.length; i++) {
-      tabs[i].setBounds({ x: 0, y: 70, width: size[0], height: size[1] - 70 })
+    // Only resize tabs that are child of this window
+    let childTabs = win.getBrowserViews()
+    for (var i = 0; i < childTabs.length; i++) {
+      childTabs[i].setBounds({
+        x: 0,
+        y: 70,
+        width: size[0],
+        height: size[1] - 70
+      })
     }
   })
 }
@@ -56,7 +66,7 @@ function createWindow () {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', newWindow)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -70,37 +80,61 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (win === null) {
-    createWindow()
+  if (windows.length == 0) {
+    newWindow()
   }
 })
 
 // In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
-
-function newTab(){
-  // Creste DOM area
+// code. You can also put them in separate files and require them here
+function newTab(parentWindow){
+  // Create new tab as BrowserView
   tab = new BrowserView()
-  tabs.push(tab)
-  win.setBrowserView(tab)
-  tab.setBounds({ x: 0, y: 70, width: 900, height: 530 })
-  tab.webContents.loadURL('https://electronjs.org')
-  //dom.webContents.openDevTools()
+  // Set parent it belongs to
+  parentWindow.setBrowserView(tab)
+  // Match parent size
+  let size = parentWindow.getSize()
+  tab.setBounds({
+    x: 0,
+    y: 70,
+    width: size[0],
+    height: size[1] - 70
+  })
+
+  // Load homepage
+  tab.webContents.loadURL('https://www.google.com/')
 }
 
 // Global functions
-global.PrevPage = function(){
+global.PrevPage = function(win){
 
 }
 
-global.NxtPage = function(){
+global.NxtPage = function(win){
 
 }
 
-global.RefreshPage = function(){
+global.RefreshPage = function(win){
 
 }
 
-global.NewTab = function(){
-  newTab()
+global.NewTab = function(win){
+  newTab(win)
+  //newWindow()
+}
+
+global.CloseTab = function({win, tab}){
+
+}
+
+global.NewWindow = function(){
+  newWindow()
+}
+
+global.Search = function({win, tab, url}){
+
+}
+
+global.LoadURL = function({win, tab, url}){
+
 }

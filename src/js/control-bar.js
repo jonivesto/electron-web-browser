@@ -1,13 +1,40 @@
 // Remote reference to electron
 const remote = require('electron').remote
 
-// JQuery
-window.$ = window.jQuery = require('jquery');
+// JQuery import
+window.$ = window.jQuery = require('jquery')
 
 // Run on view loaded
 $(function(){
   initWindowControls()
 })
+
+function closeTab(tab){
+  remote.getGlobal('CloseTab')({
+    win: remote.getCurrentWindow(),
+    tab: tab
+  })
+}
+
+function submitAddressBar(){
+  let value = $('#address-bar').val()
+  // TODO: Detect if url or search
+  // Go to URL
+  if(true){
+    remote.getGlobal('LoadURL')({
+      win: remote.getCurrentWindow(),
+      tab: tab,
+      url: value
+    })
+  } else {
+    // Do search
+    remote.getGlobal('Search')({
+      win: remote.getCurrentWindow(),
+      tab: tab,
+      url: value
+    })
+  }
+}
 
 // add listeners buttons
 function initWindowControls(){
@@ -24,18 +51,18 @@ function initWindowControls(){
   })
 
   document.getElementById('prev-page-btn').addEventListener('click', function (event) {
-      remote.getGlobal('PrevPage')()
+      remote.getGlobal('PrevPage')(remote.getCurrentWindow())
   })
 
   document.getElementById('next-page-btn').addEventListener('click', function (event) {
-      remote.getGlobal('NxtPage')()
+      remote.getGlobal('NxtPage')(remote.getCurrentWindow())
   })
 
   document.getElementById('refresh-page-btn').addEventListener('click', function (event) {
-      remote.getGlobal('RefreshPage')()
+      remote.getGlobal('RefreshPage')(remote.getCurrentWindow())
   })
 
   document.getElementById('new-tab-btn').addEventListener('click', function (event) {
-      remote.getGlobal('NewTab')()
+      remote.getGlobal('NewTab')(remote.getCurrentWindow())
   })
 }
