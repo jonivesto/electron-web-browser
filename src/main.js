@@ -1,5 +1,5 @@
 const { app, BrowserWindow, BrowserView } = require('electron')
-const debug = false
+const debug = true
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -38,6 +38,15 @@ function newWindow() {
     // when you should delete the corresponding element.
     win = null
   })
+
+  win.on('maximize', () => {
+    win['maximizedState'] = true
+  })
+
+  win.on('unmaximize', () => {
+    win['maximizedState'] = false
+  })
+  win.restore()
 
   // Show window when ready
   win.once('ready-to-show', () => {
@@ -99,32 +108,99 @@ function newTab(parentWindow, url){
     height: size[1] - 70
   })
 
+  // Tab history
+  tab["sessionBrowsingHistory"] = []
+  tab["sessionBrowsingIndex"] = null
+
+  // Update title event
+  tab.webContents.on('page-title-updated', (event, title, explicitSet) => {
+    parentWindow.webContents.send('tabUpdateTitle', {
+      id: tab.id,
+      title: title
+    })
+  })
+
+  // Update favicon event
+  tab.webContents.on('page-favicon-updated', (event, favicons) => {
+    parentWindow.webContents.send('tabUpdateFavicon', {
+      id: tab.id,
+      url: favicons[0]
+    })
+  })
+
   // Open URL
   if(url == null){
     tab.webContents.loadFile('src/html/new-tab-page.html')
   }else {
-    tab.webContents.loadURL(url)
+    tabLoadURL(tab, url, 0, win)
   }
-
 
   // Add tab to the control-bar
   parentWindow.webContents.send('addTab', {
     id: tab.id,
-    url: 'New tab'
+    url: 'NewTab'
   })
 }
 
+function tabLoadURL(tab, url, step, win){
+  //next, previous
+  if( url == null && step != 0 ){
+    if(tab.sessionBrowsingIndex==null) return
+
+    let index = tab.sessionBrowsingIndex + step
+    if (tab.sessionBrowsingHistory.length > step && step >= 0) {
+      tab.sessionBrowsingIndex = step
+      tab.webContents.loadURL(tab.sessionBrowsingHistory[step])
+    }
+    else {
+      console.error('tabLoadURL() out of range')
+    }
+  }
+  //new url
+  else{
+    tab.sessionBrowsingHistory.push(url)
+    if(tab.sessionBrowsingIndex==null) {
+      tab.sessionBrowsingIndex = 0
+    }
+    else {
+      tab.sessionBrowsingIndex = tab.sessionBrowsingHistory.length-1
+    }
+
+    tab.webContents.loadURL(url)
+    win.webContents.send('updateAdressValue', tab.sessionBrowsingHistory[tab.sessionBrowsingIndex])
+  }
+
+}
+
 // Global functions
-global.PrevPage = function(win){
-
+global.PrevPage = function(data){
+  let tabs = data.win.getBrowserViews()
+  for (var i = 0; i < tabs.length; i++) {
+    let win = data.win
+    if(tabs[i].id==data.id) {
+      tabLoadURL(tabs[i], null, 1, data.win)
+    }
+  }
 }
 
-global.NxtPage = function(win){
-
+global.NxtPage = function(data){
+  let tabs = data.win.getBrowserViews()
+  for (var i = 0; i < tabs.length; i++) {
+    let win = data.win
+    if(tabs[i].id==data.id) {
+      tabLoadURL(tabs[i], null, -1, data.win)
+    }
+  }
 }
 
-global.RefreshPage = function(win){
-
+global.RefreshPage = function(data){
+  let tabs = data.win.getBrowserViews()
+  for (var i = 0; i < tabs.length; i++) {
+    let win = data.win
+    if(tabs[i].id==data.id) {
+      tabLoadURL(tabs[i], tabs[i].sessionBrowsingHistory[tabs[i].sessionBrowsingIndex], 0, data.win)
+    }
+  }
 }
 
 global.ActivateTab = function(data){
@@ -135,6 +211,8 @@ global.ActivateTab = function(data){
     if(tabs[i].id==data.id) {
       win.removeBrowserView(tabs[i])
       win.addBrowserView(tabs[i])
+
+      data.win.webContents.send('updateAdressValue', tabs[i].sessionBrowsingHistory[tabs[i].sessionBrowsingIndex])
     }
   }
 }
@@ -165,6 +243,14 @@ global.CloseWindow = function(win){
   win.close()
 }
 
+global.Maximize = function(win){
+  if(win.maximizedState){
+    win.restore()
+  } else {
+    win.maximize()
+  }
+}
+
 global.Search = function(data){
   let tabs = data.win.getBrowserViews()
   let targetURL = 'https://www.google.com/search?q='+data.url.replace(' ', '+')
@@ -177,7 +263,7 @@ global.Search = function(data){
     for (var i = 0; i < tabs.length; i++) {
       let win = data.win
       if(tabs[i].id==data.id) {
-        tabs[i].webContents.loadURL(targetURL)
+        tabLoadURL(tabs[i], targetURL, 0, data.win)
       }
     }
   }
@@ -194,7 +280,7 @@ global.LoadURL = function(data){
     for (var i = 0; i < tabs.length; i++) {
       let win = data.win
       if(tabs[i].id==data.id) {
-        tabs[i].webContents.loadURL(data.url)
+        tabLoadURL(tabs[i], data.url, 0, data.win)
       }
     }
   }

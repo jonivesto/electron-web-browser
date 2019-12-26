@@ -22,21 +22,30 @@ body, html{
   height: 100%;
   background-color: transparent;
   color: white;
-  margin-left: 5px;
+  margin-left: 6px;
+  margin-right: 6px;
   float: left;
   width: 188px;
-  overflow: hidden;
   -webkit-app-region: no-drag;
   line-height: 100%;
-  padding-left: 6px;
-  padding-top: 6px;
+  padding-left: 11px;
+  padding-top: 9px;
   font-family: 'Helvetica';
   font-size: 11px;
+  z-index: 98;
+  position: relative;
+}
+
+.active-tab{
+  background-color: #505050!important;
+  transform-origin: bottom;
+  z-index: 99;
+  position: relative;
 }
 
 #url-bar{
   height: 35px;
-  background-color: #555;
+  background-color: #505050;
   color: silver;
   position: fixed;
   top: 35px;
@@ -46,11 +55,41 @@ body, html{
   -webkit-app-region: no-drag;
 }
 
+.active-tab > .tab-title{
+  color: white!important;
+}
+
+.tab-favicon{
+  position: absolute;
+  left: 5px;
+  top: 7px;
+  height: 20px;
+  width: 20px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  background-image: url('../img/loader.gif');
+}
+
+.tab-title{
+  white-space: nowrap;
+  display: block;
+  line-height: 34px;
+  overflow: hidden;
+  position: absolute;
+  left: 30px;
+  right: 28px;
+  top: 0;
+  bottom: 0;
+  font-size: 11px;
+  color: silver;
+}
+
 #new-tab-btn{
   float: left;
   height: 30px;
   width: 30px;
-  transform: scale(0.9) translateY(-4px) translateX(-2px);
+  transform: scale(0.9) translateY(2px) translateX(-3px);
   color: white;
   background-color: transparent;
   outline: none;
@@ -70,19 +109,23 @@ body, html{
 }
 
 .close-tab-btn{
-  float: right;
+  position: absolute;
   background-color: transparent;
   outline: none;
   border: none;
   color: white;
   opacity: 0.7;
   font-size: 18px;
-  margin-top: -5px;
-  margin-right: 3px;
-  transform: scale(0.55) translateY(-4px);
+  top: 5px;
+  right: 0px;
+  transform: scale(0.55) translateY(-5px) translateX(5px);
   border-radius: 100%;
   height: 30px;
   width: 30px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 14px;
+  background-image: url('../img/close.png');
 }
 
 .close-tab-btn:hover{
@@ -112,6 +155,9 @@ body, html{
   border-radius: 100%;
   margin-left: 8px;
   transform: scale(1.18);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 15px;
 }
 
 #url-bar > button:hover{
@@ -120,12 +166,14 @@ body, html{
 }
 
 #tabs-container{
-  height: 27px;
+  height: 36px;
   position: fixed;
-  top: 8px;
+  top: 1px;
   left: 0;
-  right: 133px;
+  right: 130px;
   -webkit-app-region: drag;
+  box-sizing: border-box;
+  padding-left: 5px;
 }
 
 #window-controls{
@@ -147,6 +195,9 @@ body, html{
   z-index: 99;
   height: 35px;
   opacity: 0.8;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 12px;
 }
 
 #window-controls > button:hover {
@@ -159,10 +210,18 @@ body, html{
   opacity: 1;
 }
 
-.active-tab{
-  background-color: #555!important;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
+.active-tab::before{
+  content: url('../img/before.png');
+  position: absolute;
+  top: 0;
+  left: -13px;
+}
+
+.active-tab::after{
+  content: url('../img/after.png');
+  position: absolute;
+  top: 0;
+  right: -13px;
 }
 
 #address-bar{

@@ -54,8 +54,8 @@ function tabButtonFix(){
 function addTab(id, url){
   activeTab = id
   $('#tabs-container').append(`
-    <div onclick="activateTab(this.id)" class="tab" id="tab-`+id+`">`
-      +url+`<button type="button" class="close-tab-btn" onclick="closeTab(this)">x</button>
+    <div onclick="activateTab(this.id)" class="tab" id="tab-`+id+`"><div class="tab-favicon"></div><span class="tab-title">`
+      +url+`</span><button type="button" class="close-tab-btn" onclick="closeTab(this)"></button>
     </div>`);
   // New tab btn fix
   tabButtonFix()
@@ -70,6 +70,18 @@ function activeTabFix(){
   $("#tab-"+activeTab).addClass("active-tab")
 }
 
+require('electron').ipcRenderer.on('updateAdressValue', (event, value) => {
+  $('#address-bar').val(value)
+})
+
+require('electron').ipcRenderer.on('tabUpdateTitle', (event, data) => {
+  $('#tab-'+data.id+'>.tab-title').html(data.title)
+})
+
+require('electron').ipcRenderer.on('tabUpdateFavicon', (event, data) => {
+  $('#tab-'+data.id+'>.tab-favicon').css('background-image','url('+data.url+')')
+})
+
 function activateTab(id){
   let integerID = id.split('-')[1]
   activeTab = Number(integerID)
@@ -81,7 +93,10 @@ function activateTab(id){
 }
 
 function submitAddressBar(){
+  // Get value
   let value = $('#address-bar').val()
+  // Unfocus
+  $('#address-bar').blur()
   // Go to URL
   if(false){
     remote.getGlobal('LoadURL')({
@@ -116,19 +131,28 @@ function initWindowControls(){
   })
 
   document.getElementById('maximize-app-btn').addEventListener('click', function (event) {
-      remote.getCurrentWindow().maximize()
+      remote.getGlobal('Maximize')(remote.getCurrentWindow())
   })
 
   document.getElementById('prev-page-btn').addEventListener('click', function (event) {
-      remote.getGlobal('PrevPage')(remote.getCurrentWindow())
+      remote.getGlobal('PrevPage')({
+        win: remote.getCurrentWindow(),
+        id: activeTab
+      })
   })
 
   document.getElementById('next-page-btn').addEventListener('click', function (event) {
-      remote.getGlobal('NxtPage')(remote.getCurrentWindow())
+      remote.getGlobal('NxtPage')({
+        win: remote.getCurrentWindow(),
+        id: activeTab
+      })
   })
 
   document.getElementById('refresh-page-btn').addEventListener('click', function (event) {
-      remote.getGlobal('RefreshPage')(remote.getCurrentWindow())
+      remote.getGlobal('RefreshPage')({
+        win: remote.getCurrentWindow(),
+        id: activeTab
+      })
   })
 
   document.getElementById('new-tab-btn').addEventListener('click', function (event) {
