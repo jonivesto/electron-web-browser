@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Hello World!</title>
+    <title>Electron browser</title>
     <!-- https://electronjs.org/docs/tutorial/security#csp-meta-tag -->
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
     <link rel="stylesheet" href="../css/control-bar.css">
@@ -10,16 +10,13 @@
   </head>
   <body>
     <div id="tabs-container">
-      <div class="tab">tab</div>
-      <div class="tab">tab</div>
-      <div class="tab">tab</div>
       <button type="button" name="new-tab" id="new-tab-btn">+</button>
     </div>
 
     <div id="url-bar">
-      <button type="button" name="button" id="prev-page-btn">pr</button>
-      <button type="button" name="button" id="next-page-btn">nx</button>
-      <button type="button" name="button" id="refresh-page-btn">re</button>
+      <button type="button" name="button" id="prev-page-btn"><</button>
+      <button type="button" name="button" id="next-page-btn">></button>
+      <button type="button" name="button" id="refresh-page-btn">()</button>
       <input type="text" name="address-bar" value="" id="address-bar" placeholder="Enter URL or search Google">
     </div>
 

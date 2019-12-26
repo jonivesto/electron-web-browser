@@ -1,4 +1,5 @@
 const { app, BrowserWindow, BrowserView } = require('electron')
+const debug = false
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -7,7 +8,7 @@ let windows = []
 function newWindow() {
   // Create the browser window.
   let win = new BrowserWindow({
-    width: 900,
+    width: 1000,
     height: 600,
     minWidth: 300,
     minHeight: 300,
@@ -28,7 +29,7 @@ function newWindow() {
   win.loadFile('src/html/control-bar.html')
 
   // Open the DevTools.
-  win.webContents.openDevTools()
+  if(debug) win.webContents.openDevTools()
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -37,9 +38,6 @@ function newWindow() {
     // when you should delete the corresponding element.
     win = null
   })
-
-  // Open tab for this window
-  newTab(win)
 
   // Show window when ready
   win.once('ready-to-show', () => {
@@ -87,11 +85,11 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here
-function newTab(parentWindow){
+function newTab(parentWindow, url){
   // Create new tab as BrowserView
   tab = new BrowserView()
   // Set parent it belongs to
-  parentWindow.setBrowserView(tab)
+  parentWindow.addBrowserView(tab)
   // Match parent size
   let size = parentWindow.getSize()
   tab.setBounds({
@@ -101,8 +99,19 @@ function newTab(parentWindow){
     height: size[1] - 70
   })
 
-  // Load homepage
-  tab.webContents.loadURL('https://www.google.com/')
+  // Open URL
+  if(url == null){
+    tab.webContents.loadFile('src/html/new-tab-page.html')
+  }else {
+    tab.webContents.loadURL(url)
+  }
+
+
+  // Add tab to the control-bar
+  parentWindow.webContents.send('addTab', {
+    id: tab.id,
+    url: 'New tab'
+  })
 }
 
 // Global functions
@@ -118,23 +127,75 @@ global.RefreshPage = function(win){
 
 }
 
-global.NewTab = function(win){
-  newTab(win)
-  //newWindow()
+global.ActivateTab = function(data){
+  console.log('activate tab with ID ' + data.id);
+  let tabs = data.win.getBrowserViews()
+  for (var i = 0; i < tabs.length; i++) {
+    let win = data.win
+    if(tabs[i].id==data.id) {
+      win.removeBrowserView(tabs[i])
+      win.addBrowserView(tabs[i])
+    }
+  }
 }
 
-global.CloseTab = function({win, tab}){
+global.NewTab = function(win){
+  console.log('open new tab')
+  newTab(win, null)
+}
 
+global.CloseTab = function(data){
+  console.log('close tab with ID ' + data.id);
+  let tabs = data.win.getBrowserViews()
+  for (var i = 0; i < tabs.length; i++) {
+    let win = data.win
+    if(tabs[i].id==data.id) {
+      win.removeBrowserView(tabs[i])
+      tabs[i].destroy()
+    }
+  }
 }
 
 global.NewWindow = function(){
+  console.log('open new window');
   newWindow()
 }
 
-global.Search = function({win, tab, url}){
-
+global.CloseWindow = function(win){
+  win.close()
 }
 
-global.LoadURL = function({win, tab, url}){
+global.Search = function(data){
+  let tabs = data.win.getBrowserViews()
+  let targetURL = 'https://www.google.com/search?q='+data.url.replace(' ', '+')
+  // If no tabs, open new one
+  if(tabs.length == 0){
+    newTab(data.win, targetURL)
+  }
+  // If there are tabs, use current tab
+  else {
+    for (var i = 0; i < tabs.length; i++) {
+      let win = data.win
+      if(tabs[i].id==data.id) {
+        tabs[i].webContents.loadURL(targetURL)
+      }
+    }
+  }
+}
 
+global.LoadURL = function(data){
+  let tabs = data.win.getBrowserViews()
+  // If no tabs, open new one
+  if(tabs.length == 0){
+    newTab(data.win, data.url)
+  }
+  // Or just use current tab
+  else {
+    for (var i = 0; i < tabs.length; i++) {
+      let win = data.win
+      if(tabs[i].id==data.id) {
+        tabs[i].webContents.loadURL(data.url)
+      }
+    }
+  }
 }

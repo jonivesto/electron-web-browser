@@ -1,0 +1,9 @@
+body, html{
+   -webkit-app-region: no-drag;
+   margin: 0;
+   height: 70px;
+   width: 100vw;
+   background-color: gray;
+   overflow: hidden;
+   box-sizing: border-box;
+}
