@@ -1,7 +1,15 @@
+//.########.##.......########..######..########.########...#######..##....##
+//.##.......##.......##.......##....##....##....##.....##.##.....##.###...##
+//.##.......##.......##.......##..........##....##.....##.##.....##.####..##
+//.######...##.......######...##..........##....########..##.....##.##.##.##
+//.##.......##.......##.......##..........##....##...##...##.....##.##..####
+//.##.......##.......##.......##....##....##....##....##..##.....##.##...###
+//.########.########.########..######.....##....##.....##..#######..##....##
+
 const { app, BrowserWindow, BrowserView } = require('electron')
 const debug = true
 
-// Keep a global reference of the window object, if you don't, the window will
+// Keep global references of the window objects, if you don't, the windows will
 // be closed automatically when the JavaScript object is garbage collected.
 let windows = []
 
@@ -137,65 +145,56 @@ function newTab(parentWindow, url){
     id: tab.id,
     url: 'NewTab'
   })
-
-  checkHistoryBounds(tab, parentWindow)
 }
 
-function checkHistoryBounds(tab, win){
-    win.webContents.send('historyBtnStatus', {
-      back: tab.webContents.canGoBack(),
-      forward: tab.webContents.canGoForward()
-    })
+// Returns tab with id in specific window
+// @param win | BrowserWindow || parent window of the wanted tab
+// @param id | int || id if the wanted tab
+// @return BrowserView
+function getTabWithID(win, id){
+  let tabs = win.getBrowserViews()
+  for (var i = 0; i < tabs.length; i++) {
+    if(tabs[i].id == id) {
+      return tabs[i]
+    }
+  }
 }
 
 // Global functions
 global.PrevPage = function(data){
-  let tabs = data.win.getBrowserViews()
-  for (var i = 0; i < tabs.length; i++) {
-    let win = data.win
-    if(tabs[i].id==data.id) {
-      tabs[i].webContents.goBack()
-      win.webContents.send('updateAdressValue', tabs[i].webContents.getURL())
-      checkHistoryBounds(tabs[i], win)
-    }
-  }
+  let tab = getTabWithID(data.win, data.id)
+  let win = data.win
+
+  tab.webContents.goBack()
+  win.webContents.send('updateAdressValue', tab.webContents.getURL())
 }
 
 global.NxtPage = function(data){
-  let tabs = data.win.getBrowserViews()
-  for (var i = 0; i < tabs.length; i++) {
-    let win = data.win
-    if(tabs[i].id==data.id) {
-      tabs[i].webContents.goForward()
-      win.webContents.send('updateAdressValue', tabs[i].webContents.getURL())
-      checkHistoryBounds(tabs[i], win)
-    }
-  }
+  let tab = getTabWithID(data.win, data.id)
+  let win = data.win
+
+  tab.webContents.goForward()
+  win.webContents.send('updateAdressValue', tab.webContents.getURL())
 }
 
 global.RefreshPage = function(data){
-  let tabs = data.win.getBrowserViews()
-  for (var i = 0; i < tabs.length; i++) {
-    let win = data.win
-    if(tabs[i].id==data.id) {
-      tabs[i].webContents.loadURL(tabs[i].webContents.getURL())
-      win.webContents.send('updateAdressValue', tabs[i].webContents.getURL())
-    }
-  }
+  let tab = getTabWithID(data.win, data.id)
+  let win = data.win
+
+  tab.webContents.loadURL(tab.webContents.getURL())
+  win.webContents.send('updateAdressValue', tab.webContents.getURL())
 }
 
 global.ActivateTab = function(data){
+  let tab = getTabWithID(data.win, data.id)
+  let win = data.win
+
+  if(tab == null) return
   console.log('activate tab with ID ' + data.id);
-  let tabs = data.win.getBrowserViews()
-  for (var i = 0; i < tabs.length; i++) {
-    let win = data.win
-    if(tabs[i].id==data.id) {
-      win.removeBrowserView(tabs[i])
-      win.addBrowserView(tabs[i])
-      win.webContents.send('updateAdressValue', tabs[i].webContents.getURL())
-      checkHistoryBounds(tabs[i], win)
-    }
-  }
+
+  win.removeBrowserView(tab)
+  win.addBrowserView(tab)
+  win.webContents.send('updateAdressValue', tab.webContents.getURL())
 }
 
 global.NewTab = function(win){
@@ -205,14 +204,11 @@ global.NewTab = function(win){
 
 global.CloseTab = function(data){
   console.log('close tab with ID ' + data.id);
-  let tabs = data.win.getBrowserViews()
-  for (var i = 0; i < tabs.length; i++) {
-    let win = data.win
-    if(tabs[i].id==data.id) {
-      win.removeBrowserView(tabs[i])
-      tabs[i].destroy()
-    }
-  }
+  let tab = getTabWithID(data.win, data.id)
+  let win = data.win
+
+  win.removeBrowserView(tab)
+  tab.destroy()
 }
 
 global.NewWindow = function(){
@@ -241,13 +237,11 @@ global.Search = function(data){
   }
   // If there are tabs, use current tab
   else {
-    for (var i = 0; i < tabs.length; i++) {
-      let win = data.win
-      if(tabs[i].id==data.id) {
-        tabs[i].webContents.loadURL(targetURL)
-        win.webContents.send('updateAdressValue', targetURL)
-      }
-    }
+    let tab = getTabWithID(data.win, data.id)
+    let win = data.win
+
+    tab.webContents.loadURL(targetURL)
+    win.webContents.send('updateAdressValue', targetURL)
   }
 }
 
@@ -259,13 +253,11 @@ global.LoadURL = function(data){
   }
   // Or just use current tab
   else {
-    for (var i = 0; i < tabs.length; i++) {
-      let win = data.win
-      if(tabs[i].id==data.id) {
-        let targetURL = data.url
-        tabs[i].webContents.loadURL(targetURL)
-        data.win.webContents.send('updateAdressValue', targetURL)
-      }
-    }
+    let tab = getTabWithID(data.win, data.id)
+    let win = data.win
+    let targetURL = data.url
+
+    tab.webContents.loadURL(targetURL)
+    win.webContents.send('updateAdressValue', targetURL)    
   }
 }
