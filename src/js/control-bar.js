@@ -82,6 +82,11 @@ require('electron').ipcRenderer.on('tabUpdateFavicon', (event, data) => {
   $('#tab-'+data.id+'>.tab-favicon').css('background-image','url('+data.url+')')
 })
 
+require('electron').ipcRenderer.on('historyBtnStatus', (event, data) => {
+  $('#prev-page-btn').prop('disabled', data.back);
+  $('#next-page-btn').prop('disabled', data.forward);
+})
+
 function activateTab(id){
   let integerID = id.split('-')[1]
   activeTab = Number(integerID)

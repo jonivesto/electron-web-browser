@@ -165,6 +165,12 @@ body, html{
   background-color: #666;
 }
 
+#url-bar > button:disabled,
+#url-bar > button[disabled]{
+  opacity: 0.2;
+  background-color: transparent!important;
+}
+
 #tabs-container{
   height: 36px;
   position: fixed;

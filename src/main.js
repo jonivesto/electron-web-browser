@@ -108,10 +108,6 @@ function newTab(parentWindow, url){
     height: size[1] - 70
   })
 
-  // Tab history
-  tab["sessionBrowsingHistory"] = []
-  tab["sessionBrowsingIndex"] = null
-
   // Update title event
   tab.webContents.on('page-title-updated', (event, title, explicitSet) => {
     parentWindow.webContents.send('tabUpdateTitle', {
@@ -132,7 +128,8 @@ function newTab(parentWindow, url){
   if(url == null){
     tab.webContents.loadFile('src/html/new-tab-page.html')
   }else {
-    tabLoadURL(tab, url, 0, win)
+    tab.webContents.loadURL(url)
+    parentWindow.webContents.send('updateAdressValue', url)
   }
 
   // Add tab to the control-bar
@@ -140,36 +137,15 @@ function newTab(parentWindow, url){
     id: tab.id,
     url: 'NewTab'
   })
+
+  checkHistoryBounds(tab, parentWindow)
 }
 
-function tabLoadURL(tab, url, step, win){
-  //next, previous
-  if( url == null && step != 0 ){
-    if(tab.sessionBrowsingIndex==null) return
-
-    let index = tab.sessionBrowsingIndex + step
-    if (tab.sessionBrowsingHistory.length > step && step >= 0) {
-      tab.sessionBrowsingIndex = step
-      tab.webContents.loadURL(tab.sessionBrowsingHistory[step])
-    }
-    else {
-      console.error('tabLoadURL() out of range')
-    }
-  }
-  //new url
-  else{
-    tab.sessionBrowsingHistory.push(url)
-    if(tab.sessionBrowsingIndex==null) {
-      tab.sessionBrowsingIndex = 0
-    }
-    else {
-      tab.sessionBrowsingIndex = tab.sessionBrowsingHistory.length-1
-    }
-
-    tab.webContents.loadURL(url)
-    win.webContents.send('updateAdressValue', tab.sessionBrowsingHistory[tab.sessionBrowsingIndex])
-  }
-
+function checkHistoryBounds(tab, win){
+    win.webContents.send('historyBtnStatus', {
+      back: tab.webContents.canGoBack(),
+      forward: tab.webContents.canGoForward()
+    })
 }
 
 // Global functions
@@ -178,7 +154,9 @@ global.PrevPage = function(data){
   for (var i = 0; i < tabs.length; i++) {
     let win = data.win
     if(tabs[i].id==data.id) {
-      tabLoadURL(tabs[i], null, 1, data.win)
+      tabs[i].webContents.goBack()
+      win.webContents.send('updateAdressValue', tabs[i].webContents.getURL())
+      checkHistoryBounds(tabs[i], win)
     }
   }
 }
@@ -188,7 +166,9 @@ global.NxtPage = function(data){
   for (var i = 0; i < tabs.length; i++) {
     let win = data.win
     if(tabs[i].id==data.id) {
-      tabLoadURL(tabs[i], null, -1, data.win)
+      tabs[i].webContents.goForward()
+      win.webContents.send('updateAdressValue', tabs[i].webContents.getURL())
+      checkHistoryBounds(tabs[i], win)
     }
   }
 }
@@ -198,7 +178,8 @@ global.RefreshPage = function(data){
   for (var i = 0; i < tabs.length; i++) {
     let win = data.win
     if(tabs[i].id==data.id) {
-      tabLoadURL(tabs[i], tabs[i].sessionBrowsingHistory[tabs[i].sessionBrowsingIndex], 0, data.win)
+      tabs[i].webContents.loadURL(tabs[i].webContents.getURL())
+      win.webContents.send('updateAdressValue', tabs[i].webContents.getURL())
     }
   }
 }
@@ -211,8 +192,8 @@ global.ActivateTab = function(data){
     if(tabs[i].id==data.id) {
       win.removeBrowserView(tabs[i])
       win.addBrowserView(tabs[i])
-
-      data.win.webContents.send('updateAdressValue', tabs[i].sessionBrowsingHistory[tabs[i].sessionBrowsingIndex])
+      win.webContents.send('updateAdressValue', tabs[i].webContents.getURL())
+      checkHistoryBounds(tabs[i], win)
     }
   }
 }
@@ -263,7 +244,8 @@ global.Search = function(data){
     for (var i = 0; i < tabs.length; i++) {
       let win = data.win
       if(tabs[i].id==data.id) {
-        tabLoadURL(tabs[i], targetURL, 0, data.win)
+        tabs[i].webContents.loadURL(targetURL)
+        win.webContents.send('updateAdressValue', targetURL)
       }
     }
   }
@@ -280,7 +262,9 @@ global.LoadURL = function(data){
     for (var i = 0; i < tabs.length; i++) {
       let win = data.win
       if(tabs[i].id==data.id) {
-        tabLoadURL(tabs[i], data.url, 0, data.win)
+        let targetURL = data.url
+        tabs[i].webContents.loadURL(targetURL)
+        data.win.webContents.send('updateAdressValue', targetURL)
       }
     }
   }
