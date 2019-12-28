@@ -35,7 +35,7 @@ function closeTab(btn){
     win: remote.getCurrentWindow(),
     id: tab
   })
-  
+
   // If last tab was closed
   if($('.tab').length == 0){
     remote.getGlobal('CloseWindow')(remote.getCurrentWindow())
@@ -89,7 +89,14 @@ function activeTabFix(){
 // Update adress bar value
 // This is called in many different events on main.js
 require('electron').ipcRenderer.on('updateAdressValue', (event, value) => {
-  $('#address-bar').val(value)
+  // In case of new tab, just clear the field
+  if(value.includes('new-tab-page')){
+    $('#address-bar').val('')
+  }
+  // Update value
+  else {
+    $('#address-bar').val(value)
+  }
 })
 // Update tab title when it is loaded
 require('electron').ipcRenderer.on('tabUpdateTitle', (event, data) => {
@@ -111,8 +118,13 @@ function updateUrlBarButtons(options){
   } else {
     // page load in progress and can be cancelled
     $('#refresh-page-btn').css('background-image','url(../img/close.png)')
+    // set loader animation when loading starts
+    $('#tab-'+options.id+'>.tab-favicon').css('background-image','url("../img/loader.gif")')
   }
 }
+require('electron').ipcRenderer.on('updateUrlBarButtons', (event, options) => {
+  updateUrlBarButtons(options)
+})
 
 // Activates tab with ID
 function activateTab(id){

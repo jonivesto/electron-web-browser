@@ -7,7 +7,7 @@
 //.########.########.########..######.....##....##.....##..#######..##....##
 
 const { app, BrowserWindow, BrowserView } = require('electron')
-const debug = true
+const debug = false
 
 // Keep global references of the window objects, if you don't, the windows will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -132,6 +132,31 @@ function newTab(parentWindow, url){
     })
   })
 
+  // Event when page loading starts
+  tab.webContents.on('did-start-loading', (event, url) => {
+    parentWindow.webContents.send('updateUrlBarButtons', {
+      id: tab.id,
+      pageReady: false,
+      canGoBack: tab.webContents.canGoBack(),
+      canGoForward: tab.webContents.canGoForward()
+    })
+  })
+
+  // Event when page loading is ready
+  tab.webContents.on('did-stop-loading', (event, url) => {
+    parentWindow.webContents.send('updateUrlBarButtons', {
+      id: tab.id,
+      pageReady: true,
+      canGoBack: tab.webContents.canGoBack(),
+      canGoForward: tab.webContents.canGoForward()
+    })
+  })
+
+  // Event when page color changes
+  tab.webContents.on('did-change-theme-color', (event, color) => {
+    // TODO:
+  })
+
   // Open URL
   if(url == null){
     tab.webContents.loadFile('src/html/new-tab-page.html')
@@ -149,7 +174,7 @@ function newTab(parentWindow, url){
 
 // Returns tab with id in specific window
 // @param win | BrowserWindow || parent window of the wanted tab
-// @param id | int || id if the wanted tab
+// @param id | int || id of the wanted tab
 // @return BrowserView
 function getTabWithID(win, id){
   let tabs = win.getBrowserViews()
@@ -160,7 +185,10 @@ function getTabWithID(win, id){
   }
 }
 
-// Global functions
+// Global functions:
+//
+//
+
 global.PrevPage = function(data){
   let tab = getTabWithID(data.win, data.id)
   let win = data.win
@@ -182,7 +210,7 @@ global.RefreshPage = function(data){
   let win = data.win
 
   tab.webContents.loadURL(tab.webContents.getURL())
-  win.webContents.send('updateAdressValue', tab.webContents.getURL())
+  win.webContents.send('updateAdressValue', tab.webContents.reload())
 }
 
 global.ActivateTab = function(data){
@@ -258,6 +286,6 @@ global.LoadURL = function(data){
     let targetURL = data.url
 
     tab.webContents.loadURL(targetURL)
-    win.webContents.send('updateAdressValue', targetURL)    
+    win.webContents.send('updateAdressValue', targetURL)
   }
 }
