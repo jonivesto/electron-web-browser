@@ -3,5 +3,5 @@
 
 # Running the app:
 1. clone the repo
-2. run command ´npm install´
+2. in the root directory, run command ´npm install´
 3. run command ´npm start´
